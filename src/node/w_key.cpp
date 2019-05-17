@@ -2,9 +2,14 @@
 
 const char* WKey::ClassName = "Key";
 
-NAN_MODULE_INIT(WKey::Init) {
-	v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
-	tpl->SetClassName(Nan::New(WKey::ClassName).ToLocalChecked());
+// NAN_MODULE_INIT(WKey::Init) {
+void WKey::Init(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target, v8::Local<v8::Context> context, v8::Isolate* isolate, v8::Local<v8::Value> addon_data_value) {
+  AddonData* addon_data = static_cast<AddonData*>(addon_data_value.As<v8::External>()->Value());
+
+	// v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
+	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(isolate, New, addon_data_value);
+	// tpl->SetClassName(Nan::New(WKey::ClassName).ToLocalChecked());
+	tpl->SetClassName(v8::String::NewFromUtf8(isolate, WKey::ClassName, v8::NewStringType::kNormal).ToLocalChecked());
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
 	// methods
@@ -24,21 +29,57 @@ NAN_MODULE_INIT(WKey::Init) {
 	v8::Local<v8::ObjectTemplate> itpl = tpl->InstanceTemplate();
 	Nan::SetAccessor(itpl, Nan::New("type").ToLocalChecked(), Type);
 
-	constructor().Reset(Nan::GetFunction(tpl).ToLocalChecked());
+	// constructor().Reset(Nan::GetFunction(tpl).ToLocalChecked());
+	constructor(addon_data).Reset(tpl->GetFunction(context).ToLocalChecked());
 
 	// static methods
-    Nan::SetMethod(Nan::GetFunction(tpl).ToLocalChecked(), "generateRsa", GenerateRsa);
-	Nan::SetMethod(Nan::GetFunction(tpl).ToLocalChecked(), "generateEc", GenerateEc);
-	Nan::SetMethod(Nan::GetFunction(tpl).ToLocalChecked(), "importPkcs8", ImportPkcs8);
-	Nan::SetMethod(Nan::GetFunction(tpl).ToLocalChecked(), "importJwk", ImportJwk);
-	Nan::SetMethod(Nan::GetFunction(tpl).ToLocalChecked(), "importSpki", ImportSpki);
 
-    Nan::Set(target,
-             Nan::New(WKey::ClassName).ToLocalChecked(),
-             Nan::GetFunction(tpl).ToLocalChecked());
+	// Nan::SetMethod(Nan::GetFunction(tpl).ToLocalChecked(), "generateRsa", GenerateRsa);
+	v8::Local<v8::FunctionTemplate> generateRsaFT = v8::FunctionTemplate::New(isolate, GenerateRsa, addon_data_value);
+	v8::Local<v8::String> generateRsaName = v8::String::NewFromUtf8(isolate, "generateRsa", v8::NewStringType::kNormal).ToLocalChecked();
+	generateRsaFT->SetClassName(generateRsaName);
+	v8::Local<v8::Function> generateRsaF = generateRsaFT->GetFunction(context).ToLocalChecked();
+	tpl->GetFunction(context).ToLocalChecked()->Set(context, generateRsaName, generateRsaF);
+
+	// Nan::SetMethod(Nan::GetFunction(tpl).ToLocalChecked(), "generateEc", GenerateEc);
+	v8::Local<v8::FunctionTemplate> generateEcFT = v8::FunctionTemplate::New(isolate, GenerateEc, addon_data_value);
+	v8::Local<v8::String> generateEcName = v8::String::NewFromUtf8(isolate, "generateEc", v8::NewStringType::kNormal).ToLocalChecked();
+	generateEcFT->SetClassName(generateEcName);
+	v8::Local<v8::Function> generateEcF = generateEcFT->GetFunction(context).ToLocalChecked();
+	tpl->GetFunction(context).ToLocalChecked()->Set(context, generateEcName, generateEcF);
+
+	// Nan::SetMethod(Nan::GetFunction(tpl).ToLocalChecked(), "importPkcs8", ImportPkcs8);
+	v8::Local<v8::FunctionTemplate> importPkcs8FT = v8::FunctionTemplate::New(isolate, ImportPkcs8, addon_data_value);
+	v8::Local<v8::String> importPkcs8Name = v8::String::NewFromUtf8(isolate, "importPkcs8", v8::NewStringType::kNormal).ToLocalChecked();
+	importPkcs8FT->SetClassName(importPkcs8Name);
+	v8::Local<v8::Function> importPkcs8F = importPkcs8FT->GetFunction(context).ToLocalChecked();
+	tpl->GetFunction(context).ToLocalChecked()->Set(context, importPkcs8Name, importPkcs8F);
+
+	// Nan::SetMethod(Nan::GetFunction(tpl).ToLocalChecked(), "importJwk", ImportJwk);
+	v8::Local<v8::FunctionTemplate> importJwkFT = v8::FunctionTemplate::New(isolate, ImportJwk, addon_data_value);
+	v8::Local<v8::String> importJwkName = v8::String::NewFromUtf8(isolate, "importJwk", v8::NewStringType::kNormal).ToLocalChecked();
+	importJwkFT->SetClassName(importJwkName);
+	v8::Local<v8::Function> importJwkF = importJwkFT->GetFunction(context).ToLocalChecked();
+	tpl->GetFunction(context).ToLocalChecked()->Set(context, importJwkName, importJwkF);
+
+	// Nan::SetMethod(Nan::GetFunction(tpl).ToLocalChecked(), "importSpki", ImportSpki);
+	v8::Local<v8::FunctionTemplate> importSpkiFT = v8::FunctionTemplate::New(isolate, ImportSpki, addon_data_value);
+	v8::Local<v8::String> importSpkiName = v8::String::NewFromUtf8(isolate, "importSpki", v8::NewStringType::kNormal).ToLocalChecked();
+	importSpkiFT->SetClassName(importSpkiName);
+	v8::Local<v8::Function> importSpkiF = importSpkiFT->GetFunction(context).ToLocalChecked();
+	tpl->GetFunction(context).ToLocalChecked()->Set(context, importSpkiName, importSpkiF);
+
+	// Nan::Set(target,
+	//          Nan::New(WKey::ClassName).ToLocalChecked(),
+	//          Nan::GetFunction(tpl).ToLocalChecked());
+	target->Set(context,
+		v8::String::NewFromUtf8(isolate, WKey::ClassName, v8::NewStringType::kNormal)
+				.ToLocalChecked(),
+		tpl->GetFunction(context).ToLocalChecked()).FromJust();
 }
 
-NAN_METHOD(WKey::New) {
+// NAN_METHOD(WKey::New) {
+void WKey::New(const v8::FunctionCallbackInfo<v8::Value>& info) {
 	LOG_FUNC();
 
 	if (info.IsConstructCall()) {
@@ -46,12 +87,15 @@ NAN_METHOD(WKey::New) {
 		WKey * obj = new WKey();
 		obj->Wrap(info.This());
 		info.GetReturnValue().Set(info.This());
-
 	}
 	else {
 		//const int argc = 1;
 		//v8::Local<v8::Value> argv[argc] = { info[0] };
-		v8::Local<v8::Function> cons = Nan::New(constructor());
+
+		// v8::Local<v8::Function> cons = Nan::New(constructor());
+		AddonData* addon_data = static_cast<AddonData*>(info.Data().As<v8::External>()->Value());
+		v8::Local<v8::Function> cons = Nan::New(constructor(addon_data));
+
 		info.GetReturnValue().Set(Nan::NewInstance(cons, 0, nullptr).ToLocalChecked());
 	}
 };
@@ -106,27 +150,29 @@ NAN_METHOD(WKey::PublicExponent) {
 	}
 }
 
-NAN_METHOD(WKey::GenerateRsa) {
+// NAN_METHOD(WKey::GenerateRsa) {
+void WKey::GenerateRsa(const v8::FunctionCallbackInfo<v8::Value>& info) {
 	LOG_FUNC();
 
 	int modulus = Nan::To<int>(info[0]).FromJust();
 	int publicExponent = Nan::To<int>(info[1]).FromJust();
 	Nan::Callback *callback = new Nan::Callback(info[2].As<v8::Function>());
 
-	Nan::AsyncQueueWorker(new AsyncRsaGenerateKey(callback, modulus, publicExponent));
+	Nan::AsyncQueueWorker(new AsyncRsaGenerateKey(callback, modulus, publicExponent, info.Data()));
 }
 
 /*
  * namedCurve: number
  * cb: function
  */
-NAN_METHOD(WKey::GenerateEc) {
+// NAN_METHOD(WKey::GenerateEc) {
+void WKey::GenerateEc(const v8::FunctionCallbackInfo<v8::Value>& info) {
 	LOG_FUNC();
 
 	int namedCurve = Nan::To<int>(info[0]).FromJust();
 	Nan::Callback *callback = new Nan::Callback(info[1].As<v8::Function>());
 
-	Nan::AsyncQueueWorker(new AsyncEcGenerateKey(callback, namedCurve));
+	Nan::AsyncQueueWorker(new AsyncEcGenerateKey(callback, namedCurve, info.Data()));
 }
 
 /*
@@ -236,34 +282,37 @@ NAN_METHOD(WKey::ExportPkcs8) {
 	Nan::AsyncQueueWorker(new AsyncExportPkcs8(callback, wkey->data));
 }
 
-NAN_METHOD(WKey::ImportPkcs8) {
+// NAN_METHOD(WKey::ImportPkcs8) {
+void WKey::ImportPkcs8(const v8::FunctionCallbackInfo<v8::Value>& info) {
 	LOG_FUNC();
 
 	Handle<std::string> in = v8Buffer_to_String(info[0]);
 
 	Nan::Callback *callback = new Nan::Callback(info[1].As<v8::Function>());
 
-	Nan::AsyncQueueWorker(new AsyncImportPkcs8(callback, in));
+	Nan::AsyncQueueWorker(new AsyncImportPkcs8(callback, in, info.Data()));
 }
 
 /*
  * in: buffer
  */
-NAN_METHOD(WKey::ImportSpki) {
+// NAN_METHOD(WKey::ImportSpki) {
+void WKey::ImportSpki(const v8::FunctionCallbackInfo<v8::Value>& info) {
 	LOG_FUNC();
 
 	Handle<std::string> in = v8Buffer_to_String(info[0]);
 
 	Nan::Callback *callback = new Nan::Callback(info[1].As<v8::Function>());
 
-	Nan::AsyncQueueWorker(new AsyncImportSpki(callback, in));
+	Nan::AsyncQueueWorker(new AsyncImportSpki(callback, in, info.Data()));
 }
 
 /*
  * jwk: v8::Object
  * key_type: number
  */
-NAN_METHOD(WKey::ImportJwk) {
+// NAN_METHOD(WKey::ImportJwk) {
+void WKey::ImportJwk(const v8::FunctionCallbackInfo<v8::Value>& info) {
 	LOG_FUNC();
 
 	int key_type = Nan::To<int>(info[1]).FromJust();
@@ -306,10 +355,11 @@ NAN_METHOD(WKey::ImportJwk) {
 		}
 
 		if (callback)
-			Nan::AsyncQueueWorker(new AsyncImportJwkRsa(callback, jwk, key_type));
+			Nan::AsyncQueueWorker(new AsyncImportJwkRsa(callback, jwk, key_type, info.Data()));
 		else {
 			Handle<ScopedEVP_PKEY> pkey = jwk->To(key_type);
-			v8::Local<v8::Object> v8Key = WKey::NewInstance();
+		  AddonData* addon_data = static_cast<AddonData*>(info.Data().As<v8::External>()->Value());
+			v8::Local<v8::Object> v8Key = WKey::NewInstance(addon_data);
 			WKey *wkey = WKey::Unwrap<WKey>(v8Key);
 			wkey->data = pkey;
 
@@ -330,10 +380,11 @@ NAN_METHOD(WKey::ImportJwk) {
 		}
 
 		if (callback)
-			Nan::AsyncQueueWorker(new AsyncEcImportJwk(callback, jwk, key_type));
+			Nan::AsyncQueueWorker(new AsyncEcImportJwk(callback, jwk, key_type, info.Data()));
 		else {
 			Handle<ScopedEVP_PKEY> pkey = jwk->To(key_type);
-			v8::Local<v8::Object> v8Key = WKey::NewInstance();
+		  AddonData* addon_data = static_cast<AddonData*>(info.Data().As<v8::External>()->Value());
+			v8::Local<v8::Object> v8Key = WKey::NewInstance(addon_data);
 			WKey *wkey = WKey::Unwrap<WKey>(v8Key);
 			wkey->data = pkey;
 

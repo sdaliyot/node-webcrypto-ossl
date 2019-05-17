@@ -2,9 +2,14 @@
 
 const char* WHmac::ClassName = "HmacKey";
 
-NAN_MODULE_INIT(WHmac::Init) {
-	v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
-	tpl->SetClassName(Nan::New(ClassName).ToLocalChecked());
+// NAN_MODULE_INIT(WHmac::Init) {
+void WHmac::Init(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target, v8::Local<v8::Context> context, v8::Isolate* isolate, v8::Local<v8::Value> addon_data_value) {
+  AddonData* addon_data = static_cast<AddonData*>(addon_data_value.As<v8::External>()->Value());
+
+	// v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
+	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(isolate, New, addon_data_value);
+	// tpl->SetClassName(Nan::New(ClassName).ToLocalChecked());
+	tpl->SetClassName(v8::String::NewFromUtf8(isolate, WHmac::ClassName, v8::NewStringType::kNormal).ToLocalChecked());
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
 	// methods
@@ -13,18 +18,35 @@ NAN_MODULE_INIT(WHmac::Init) {
 	SetPrototypeMethod(tpl, "sign", Sign);
 	SetPrototypeMethod(tpl, "verify", Verify);
 
-	constructor().Reset(Nan::GetFunction(tpl).ToLocalChecked());
+	// constructor().Reset(Nan::GetFunction(tpl).ToLocalChecked());
+	constructor(addon_data).Reset(tpl->GetFunction(context).ToLocalChecked());
 
 	// static methods
-	Nan::SetMethod(Nan::GetFunction(tpl).ToLocalChecked(), "generate", Generate);
-	Nan::SetMethod(Nan::GetFunction(tpl).ToLocalChecked(), "import", Import);
+	// Nan::SetMethod(Nan::GetFunction(tpl).ToLocalChecked(), "generate", Generate);
+	v8::Local<v8::FunctionTemplate> generateFT = v8::FunctionTemplate::New(isolate, Generate, addon_data_value);
+	v8::Local<v8::String> generateName = v8::String::NewFromUtf8(isolate, "generate", v8::NewStringType::kNormal).ToLocalChecked();
+	generateFT->SetClassName(generateName);
+	v8::Local<v8::Function> generateF = generateFT->GetFunction(context).ToLocalChecked();
+	tpl->GetFunction(context).ToLocalChecked()->Set(context, generateName, generateF);
 
-    Nan::Set(target,
-             Nan::New(ClassName).ToLocalChecked(),
-             Nan::GetFunction(tpl).ToLocalChecked());
+	// Nan::SetMethod(Nan::GetFunction(tpl).ToLocalChecked(), "import", Import);
+	v8::Local<v8::FunctionTemplate> importFT = v8::FunctionTemplate::New(isolate, Import, addon_data_value);
+	v8::Local<v8::String> importName = v8::String::NewFromUtf8(isolate, "import", v8::NewStringType::kNormal).ToLocalChecked();
+	importFT->SetClassName(importName);
+	v8::Local<v8::Function> importF = importFT->GetFunction(context).ToLocalChecked();
+	tpl->GetFunction(context).ToLocalChecked()->Set(context, importName, importF);
+
+	// Nan::Set(target,
+	// 					Nan::New(ClassName).ToLocalChecked(),
+	// 					Nan::GetFunction(tpl).ToLocalChecked());
+	target->Set(context,
+		v8::String::NewFromUtf8(isolate, WHmac::ClassName, v8::NewStringType::kNormal)
+				.ToLocalChecked(),
+		tpl->GetFunction(context).ToLocalChecked()).FromJust();
 }
 
-NAN_METHOD(WHmac::New) {
+// NAN_METHOD(WHmac::New) {
+void WHmac::New(const v8::FunctionCallbackInfo<v8::Value>& info) {
 	LOG_FUNC();
 
 	if (info.IsConstructCall()) {
@@ -36,7 +58,11 @@ NAN_METHOD(WHmac::New) {
 	else {
 		//const int argc = 1;
 		//v8::Local<v8::Value> argv[argc] = { info[0] };
-		v8::Local<v8::Function> cons = Nan::New(constructor());
+
+		// v8::Local<v8::Function> cons = Nan::New(constructor());
+		AddonData* addon_data = static_cast<AddonData*>(info.Data().As<v8::External>()->Value());
+		v8::Local<v8::Function> cons = Nan::New(constructor(addon_data));
+
 		info.GetReturnValue().Set(Nan::NewInstance(cons, 0, nullptr).ToLocalChecked());
 	}
 };
@@ -45,13 +71,14 @@ NAN_METHOD(WHmac::New) {
 * keySize: number
 * cb: function
 */
-NAN_METHOD(WHmac::Generate) {
+// NAN_METHOD(WHmac::Generate) {
+void WHmac::Generate(const v8::FunctionCallbackInfo<v8::Value>& info) {
 	LOG_FUNC();
 
 	int keySize = Nan::To<int>(info[0]).FromJust();
 	Nan::Callback *callback = new Nan::Callback(info[1].As<v8::Function>());
 
-	Nan::AsyncQueueWorker(new AsyncHmacGenerateKey(callback, keySize));
+	Nan::AsyncQueueWorker(new AsyncHmacGenerateKey(callback, keySize, info.Data()));
 }
 
 /*
@@ -71,14 +98,15 @@ NAN_METHOD(WHmac::Export) {
 * raw: buffer
 * cb: function
 */
-NAN_METHOD(WHmac::Import) {
+// NAN_METHOD(WHmac::Import) {
+void WHmac::Import(const v8::FunctionCallbackInfo<v8::Value>& info) {
 	LOG_FUNC();
 
 	LOG_INFO("raw");
 	Handle<std::string> hRaw = v8Buffer_to_String(info[0]);
 
 	Nan::Callback *callback = new Nan::Callback(info[1].As<v8::Function>());
-	Nan::AsyncQueueWorker(new AsyncHmacImport(callback, hRaw));
+	Nan::AsyncQueueWorker(new AsyncHmacImport(callback, hRaw, info.Data()));
 }
 
 /*

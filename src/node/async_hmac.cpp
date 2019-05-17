@@ -13,7 +13,7 @@ void AsyncHmacGenerateKey::Execute() {
 void AsyncHmacGenerateKey::HandleOKCallback() {
 	Nan::HandleScope scope;
 
-	v8::Local<v8::Object> v8Key = WHmac::NewInstance();
+	v8::Local<v8::Object> v8Key = WHmac::NewInstance(addon_data);
 	WHmac *wkey = WHmac::Unwrap<WHmac>(v8Key);
 	wkey->data = this->key;
 
@@ -57,7 +57,7 @@ void AsyncHmacImport::Execute() {
 void AsyncHmacImport::HandleOKCallback() {
 	Nan::HandleScope scope;
 
-	v8::Local<v8::Object> v8Key = WHmac::NewInstance();
+	v8::Local<v8::Object> v8Key = WHmac::NewInstance(addon_data);
 	WHmac *wkey = WHmac::Unwrap<WHmac>(v8Key);
 	wkey->data = this->hKey;
 

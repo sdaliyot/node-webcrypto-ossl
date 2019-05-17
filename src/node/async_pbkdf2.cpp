@@ -13,7 +13,7 @@ void AsyncPbkdf2Import::Execute() {
 void AsyncPbkdf2Import::HandleOKCallback() {
 	Nan::HandleScope scope;
 
-	v8::Local<v8::Object> v8Key = WPbkdf2::NewInstance();
+	v8::Local<v8::Object> v8Key = WPbkdf2::NewInstance(addon_data);
 	WPbkdf2 *wkey = WPbkdf2::Unwrap<WPbkdf2>(v8Key);
 	wkey->data = this->hKey;
 

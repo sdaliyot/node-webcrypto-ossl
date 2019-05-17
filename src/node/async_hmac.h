@@ -8,8 +8,12 @@ class AsyncHmacGenerateKey : public Nan::AsyncWorker {
 public:
 	AsyncHmacGenerateKey(
 		Nan::Callback *callback,
-		int keySize
-		) : AsyncWorker(callback), keySize(keySize) {}
+		int keySize,
+		v8::Local<v8::Value> addon_data_value
+	) : AsyncWorker(callback), keySize(keySize) {
+		this->addon_data_value = addon_data_value;
+		this->addon_data = static_cast<AddonData*>(addon_data_value.As<v8::External>()->Value());
+	}
 	~AsyncHmacGenerateKey() {}
 
 	void Execute();
@@ -17,6 +21,10 @@ public:
 
 protected:
 	int keySize;
+
+	AddonData* addon_data;
+	v8::Local<v8::Value> addon_data_value;
+
 	// Result
 	Handle<ScopedHMAC> key;
 };
@@ -42,8 +50,12 @@ class AsyncHmacImport : public Nan::AsyncWorker {
 public:
 	AsyncHmacImport(
 		Nan::Callback *callback,
-		Handle<std::string> hInput
-		) : AsyncWorker(callback), hInput(hInput) {}
+		Handle<std::string> hInput,
+		v8::Local<v8::Value> addon_data_value
+	) : AsyncWorker(callback), hInput(hInput) {
+		this->addon_data_value = addon_data_value;
+		this->addon_data = static_cast<AddonData*>(addon_data_value.As<v8::External>()->Value());
+	}
 	~AsyncHmacImport() {}
 
 	void Execute();
@@ -51,6 +63,10 @@ public:
 
 protected:
 	Handle<std::string> hInput;
+
+	AddonData* addon_data;
+	v8::Local<v8::Value> addon_data_value;
+
 	// Result
 	Handle<ScopedHMAC> hKey;
 };

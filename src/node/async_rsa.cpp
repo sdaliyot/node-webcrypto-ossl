@@ -30,9 +30,10 @@ void AsyncRsaGenerateKey::Execute() {
 }
 
 void AsyncRsaGenerateKey::HandleOKCallback() {
+
 	Nan::HandleScope scope;
 
-	v8::Local<v8::Object> v8Key = WKey::NewInstance();
+	v8::Local<v8::Object> v8Key = WKey::NewInstance(addon_data);
 	WKey *wkey = WKey::Unwrap<WKey>(v8Key);
 	wkey->data = this->key;
 
@@ -140,7 +141,7 @@ void AsyncImportPkcs8::Execute() {
 void AsyncImportPkcs8::HandleOKCallback() {
 	Nan::HandleScope scope;
 
-	v8::Local<v8::Object> v8Key = WKey::NewInstance();
+	v8::Local<v8::Object> v8Key = WKey::NewInstance(addon_data);
 	WKey *wkey = WKey::Unwrap<WKey>(v8Key);
 	wkey->data = this->key;
 
@@ -165,7 +166,7 @@ void AsyncImportSpki::Execute() {
 void AsyncImportSpki::HandleOKCallback() {
 	Nan::HandleScope scope;
 
-	v8::Local<v8::Object> v8Key = WKey::NewInstance();
+	v8::Local<v8::Object> v8Key = WKey::NewInstance(addon_data);
 	WKey *wkey = WKey::Unwrap<WKey>(v8Key);
 	wkey->data = this->key;
 
@@ -191,7 +192,7 @@ void AsyncImportJwkRsa::Execute() {
 void AsyncImportJwkRsa::HandleOKCallback() {
 	Nan::HandleScope scope;
 
-	v8::Local<v8::Object> v8Key = WKey::NewInstance();
+	v8::Local<v8::Object> v8Key = WKey::NewInstance(addon_data);
 	WKey *wkey = WKey::Unwrap<WKey>(v8Key);
 	wkey->data = pkey;
 

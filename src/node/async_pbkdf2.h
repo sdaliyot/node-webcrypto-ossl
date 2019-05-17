@@ -8,8 +8,12 @@ class AsyncPbkdf2Import : public Nan::AsyncWorker {
 public:
 	AsyncPbkdf2Import(
 		Nan::Callback *callback,
-		Handle<std::string> hInput
-	) : AsyncWorker(callback), hInput(hInput) {}
+		Handle<std::string> hInput,
+		v8::Local<v8::Value> addon_data_value
+	) : AsyncWorker(callback), hInput(hInput) {
+		this->addon_data_value = addon_data_value;
+		this->addon_data = static_cast<AddonData*>(addon_data_value.As<v8::External>()->Value());
+	}
 	~AsyncPbkdf2Import() {}
 
 	void Execute();
@@ -17,6 +21,10 @@ public:
 
 protected:
 	Handle<std::string> hInput;
+
+	AddonData* addon_data;
+	v8::Local<v8::Value> addon_data_value;
+
 	// Result
 	Handle<ScopedPbkdf2> hKey;
 };

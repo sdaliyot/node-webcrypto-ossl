@@ -13,7 +13,7 @@ void AsyncAesGenerateKey::Execute() {
 void AsyncAesGenerateKey::HandleOKCallback() {
 	Nan::HandleScope scope;
 
-	v8::Local<v8::Object> v8Key = WAes::NewInstance();
+	v8::Local<v8::Object> v8Key = WAes::NewInstance(addon_data);
 	WAes *wkey = WAes::Unwrap<WAes>(v8Key);
 	wkey->data = this->key;
 
@@ -107,7 +107,7 @@ void AsyncAesImport::Execute() {
 void AsyncAesImport::HandleOKCallback() {
 	Nan::HandleScope scope;
 
-	v8::Local<v8::Object> v8Key = WAes::NewInstance();
+	v8::Local<v8::Object> v8Key = WAes::NewInstance(addon_data);
 	WAes *wkey = WAes::Unwrap<WAes>(v8Key);
 	wkey->data = this->hKey;
 

@@ -13,6 +13,7 @@
             "target_name": "nodessl",
             "sources": [
                 "src/main.cpp",
+                "src/addon_data.h",
                 "src/core/common.h",
                 "src/core/define.h",
                 "src/core/key_exp.cpp",

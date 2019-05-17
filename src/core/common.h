@@ -11,4 +11,6 @@
 #include "bn.h"
 #include <openssl/bn.h>
 
+#include "../addon_data.h"
+
 #endif // OSSL_CORE_COMMON_H_INCLUDE

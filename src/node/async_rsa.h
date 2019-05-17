@@ -9,8 +9,12 @@ public:
 	AsyncRsaGenerateKey(
 		Nan::Callback *callback,
 		int modulusBits,
-		int publicExponent
-		) : AsyncWorker(callback), modulusBits(modulusBits), publicExponent(publicExponent) {}
+		int publicExponent,
+		v8::Local<v8::Value> addon_data_value
+	) : AsyncWorker(callback), modulusBits(modulusBits), publicExponent(publicExponent) {
+		this->addon_data_value = addon_data_value;
+		this->addon_data = static_cast<AddonData*>(addon_data_value.As<v8::External>()->Value());
+	}
 	~AsyncRsaGenerateKey() {}
 
 	void Execute();
@@ -19,6 +23,10 @@ public:
 protected:
 	int modulusBits;
 	int publicExponent;
+
+	AddonData* addon_data;
+	v8::Local<v8::Value> addon_data_value;
+
 	// Result
 	Handle<ScopedEVP_PKEY> key;
 };
@@ -103,8 +111,12 @@ class AsyncImportPkcs8 : public Nan::AsyncWorker {
 public:
 	AsyncImportPkcs8(
 		Nan::Callback *callback,
-		Handle<std::string> in)
-		: AsyncWorker(callback), in(in) {}
+		Handle<std::string> in,
+		v8::Local<v8::Value> addon_data_value
+	) : AsyncWorker(callback), in(in) {
+		this->addon_data_value = addon_data_value;
+		this->addon_data = static_cast<AddonData*>(addon_data_value.As<v8::External>()->Value());
+	}
 	~AsyncImportPkcs8() {}
 
 	void Execute();
@@ -112,6 +124,10 @@ public:
 
 protected:
 	Handle<std::string> in;
+
+	AddonData* addon_data;
+	v8::Local<v8::Value> addon_data_value;
+
 	// Result
 	Handle<ScopedEVP_PKEY> key;
 };
@@ -120,8 +136,12 @@ class AsyncImportSpki : public Nan::AsyncWorker {
 public:
 	AsyncImportSpki(
 		Nan::Callback *callback,
-		Handle<std::string> in)
-		: AsyncWorker(callback), in(in) {}
+		Handle<std::string> in,
+		v8::Local<v8::Value> addon_data_value
+	) : AsyncWorker(callback), in(in) {
+		this->addon_data_value = addon_data_value;
+		this->addon_data = static_cast<AddonData*>(addon_data_value.As<v8::External>()->Value());
+	}
 	~AsyncImportSpki() {}
 
 	void Execute();
@@ -129,14 +149,25 @@ public:
 
 private:
 	Handle<std::string> in;
+
+	AddonData* addon_data;
+	v8::Local<v8::Value> addon_data_value;
+
 	// Result
 	Handle<ScopedEVP_PKEY> key;
 };
 
 class AsyncImportJwkRsa : public Nan::AsyncWorker {
 public:
-	AsyncImportJwkRsa(Nan::Callback *callback, Handle<JwkRsa> jwk, int key_type)
-		: AsyncWorker(callback), jwk(jwk), key_type(key_type) {}
+	AsyncImportJwkRsa(
+		Nan::Callback *callback, 
+		Handle<JwkRsa> jwk, 
+		int key_type,
+		v8::Local<v8::Value> addon_data_value
+	) : AsyncWorker(callback), jwk(jwk), key_type(key_type) {
+		this->addon_data_value = addon_data_value;
+		this->addon_data = static_cast<AddonData*>(addon_data_value.As<v8::External>()->Value());
+	}
 	~AsyncImportJwkRsa() {}
 
 	void Execute();
@@ -145,6 +176,10 @@ public:
 protected:
 	Handle<JwkRsa> jwk;
 	int key_type;
+
+	AddonData* addon_data;
+	v8::Local<v8::Value> addon_data_value;
+
 	//Result
 	Handle<ScopedEVP_PKEY> pkey;
 };

@@ -66,7 +66,19 @@ void KeyType(v8::Local<v8::Object> target) {
     Nan::Set(target, Nan::New("KeyType").ToLocalChecked(), keyType);
 }
 
-NAN_MODULE_INIT(InitModule) {
+// Initialize the addon in such a way that it may be initialized multiple times
+// per process. The function body following this macro is provided the value
+// `exports` of type `Local<Object>`, the value `module` of type
+// `Local<Object>`, and `context` of type `Local<Context>`. It may either define
+// new properties on the `exports` object, or define the property named
+// "exports" on the `module` object.
+NODE_MODULE_INIT(/*exports, module, context*/) {
+	v8::Isolate* isolate = context->GetIsolate();
+
+	// Create a new instance of the addon data that will be associated with this
+	// instance of the addon, and that will be freed along with this instance of
+	// the addon.
+	v8::Local<v8::Value> addon_data = AddonData::New(isolate, exports);
 
 	Nan::HandleScope scope;
 
@@ -74,17 +86,15 @@ NAN_MODULE_INIT(InitModule) {
 	OpenSSL_add_all_algorithms();
 	ERR_load_crypto_strings();
 
-	WKey::Init(target);
-	WAes::Init(target);
-	WHmac::Init(target);
-	WPbkdf2::Init(target);
-	WCore::Init(target);
+	WKey::Init(exports, context, isolate, addon_data);
+	WAes::Init(exports, context, isolate, addon_data);
+	WHmac::Init(exports, context, isolate, addon_data);
+	WPbkdf2::Init(exports, context, isolate, addon_data);
+	WCore::Init(exports, context, isolate, addon_data);
 
 	// Enums
-	EcNamedCurves(target);
-	RsaPublicExponent(target);
-	KeyType(target);
+	EcNamedCurves(exports);
+	RsaPublicExponent(exports);
+	KeyType(exports);
 
 }
-
-NODE_MODULE(nodessl, InitModule);

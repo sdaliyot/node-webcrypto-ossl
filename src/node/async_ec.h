@@ -8,8 +8,12 @@ class AsyncEcGenerateKey : public Nan::AsyncWorker {
 public:
 	AsyncEcGenerateKey(
 		Nan::Callback *callback,
-		int namedCurve
-		) : AsyncWorker(callback), namedCurve(namedCurve) {}
+		int namedCurve,
+		v8::Local<v8::Value> addon_data_value
+	) : AsyncWorker(callback), namedCurve(namedCurve) {
+		this->addon_data_value = addon_data_value;
+		this->addon_data = static_cast<AddonData*>(addon_data_value.As<v8::External>()->Value());
+	}
 	~AsyncEcGenerateKey() {}
 
 	void Execute();
@@ -17,6 +21,10 @@ public:
 
 protected:
 	int namedCurve;
+
+	AddonData* addon_data;
+	v8::Local<v8::Value> addon_data_value;
+
 	// Result
 	Handle<ScopedEVP_PKEY> key;
 };
@@ -63,8 +71,15 @@ protected:
 
 class AsyncEcImportJwk : public Nan::AsyncWorker {
 public:
-	AsyncEcImportJwk(Nan::Callback *callback, Handle<JwkEc> jwk, int key_type)
-		: AsyncWorker(callback), jwk(jwk), key_type(key_type) {}
+	AsyncEcImportJwk(
+		Nan::Callback *callback, 
+		Handle<JwkEc> jwk, 
+		int key_type,
+		v8::Local<v8::Value> addon_data_value
+	) : AsyncWorker(callback), jwk(jwk), key_type(key_type) {
+		this->addon_data_value = addon_data_value;
+		this->addon_data = static_cast<AddonData*>(addon_data_value.As<v8::External>()->Value());
+	}
 	~AsyncEcImportJwk() {}
 
 	void Execute();
@@ -73,6 +88,10 @@ public:
 protected:
 	Handle<JwkEc> jwk;
 	int key_type;
+
+	AddonData* addon_data;
+	v8::Local<v8::Value> addon_data_value;
+
 	//Result
 	Handle<ScopedEVP_PKEY> pkey;
 };

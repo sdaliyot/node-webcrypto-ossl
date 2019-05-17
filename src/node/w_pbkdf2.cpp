@@ -2,26 +2,42 @@
 
 const char* WPbkdf2::ClassName = "Pbkdf2Key";
 
-NAN_MODULE_INIT(WPbkdf2::Init) {
-	v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
-	tpl->SetClassName(Nan::New(ClassName).ToLocalChecked());
+// NAN_MODULE_INIT(WPbkdf2::Init) {
+void WPbkdf2::Init(Nan::ADDON_REGISTER_FUNCTION_ARGS_TYPE target, v8::Local<v8::Context> context, v8::Isolate* isolate, v8::Local<v8::Value> addon_data_value) {
+  AddonData* addon_data = static_cast<AddonData*>(addon_data_value.As<v8::External>()->Value());
+
+	// v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
+	v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(isolate, New, addon_data_value);
+	// tpl->SetClassName(Nan::New(ClassName).ToLocalChecked());
+	tpl->SetClassName(v8::String::NewFromUtf8(isolate, WPbkdf2::ClassName, v8::NewStringType::kNormal).ToLocalChecked());
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
 	// methods
 
 	SetPrototypeMethod(tpl, "deriveBits", DeriveBits);
 
-	constructor().Reset(Nan::GetFunction(tpl).ToLocalChecked());
+	// constructor().Reset(Nan::GetFunction(tpl).ToLocalChecked());
+	constructor(addon_data).Reset(tpl->GetFunction(context).ToLocalChecked());
 
 	// static methods
-	Nan::SetMethod(Nan::GetFunction(tpl).ToLocalChecked(), "importKey", ImportKey);
+	// Nan::SetMethod(Nan::GetFunction(tpl).ToLocalChecked(), "importKey", ImportKey);
+	v8::Local<v8::FunctionTemplate> importKeyFT = v8::FunctionTemplate::New(isolate, ImportKey, addon_data_value);
+	v8::Local<v8::String> importKeyName = v8::String::NewFromUtf8(isolate, "importKey", v8::NewStringType::kNormal).ToLocalChecked();
+	importKeyFT->SetClassName(importKeyName);
+	v8::Local<v8::Function> importKeyF = importKeyFT->GetFunction(context).ToLocalChecked();
+	tpl->GetFunction(context).ToLocalChecked()->Set(context, importKeyName, importKeyF);
 
-    Nan::Set(target,
-             Nan::New(ClassName).ToLocalChecked(),
-             Nan::GetFunction(tpl).ToLocalChecked());
+	// Nan::Set(target,
+	// 					Nan::New(ClassName).ToLocalChecked(),
+	// 					Nan::GetFunction(tpl).ToLocalChecked());
+	target->Set(context,
+		v8::String::NewFromUtf8(isolate, WPbkdf2::ClassName, v8::NewStringType::kNormal)
+				.ToLocalChecked(),
+		tpl->GetFunction(context).ToLocalChecked()).FromJust();
 }
 
-NAN_METHOD(WPbkdf2::New) {
+// NAN_METHOD(WPbkdf2::New) {
+void WPbkdf2::New(const v8::FunctionCallbackInfo<v8::Value>& info) {
 	LOG_FUNC();
 
 	if (info.IsConstructCall()) {
@@ -33,7 +49,11 @@ NAN_METHOD(WPbkdf2::New) {
 	else {
 		//const int argc = 1;
 		//v8::Local<v8::Value> argv[argc] = { info[0] };
-		v8::Local<v8::Function> cons = Nan::New(constructor());
+
+		// v8::Local<v8::Function> cons = Nan::New(constructor());
+		AddonData* addon_data = static_cast<AddonData*>(info.Data().As<v8::External>()->Value());
+		v8::Local<v8::Function> cons = Nan::New(constructor(addon_data));
+
 		info.GetReturnValue().Set(Nan::NewInstance(cons, 0, nullptr).ToLocalChecked());
 	}
 };
@@ -42,14 +62,15 @@ NAN_METHOD(WPbkdf2::New) {
  * raw: buffer
  * cb: (error: Error, data: Pbkdf2Key) => void
  */
-NAN_METHOD(WPbkdf2::ImportKey) {
+// NAN_METHOD(WPbkdf2::ImportKey) {
+void WPbkdf2::ImportKey(const v8::FunctionCallbackInfo<v8::Value>& info) {
 	LOG_FUNC();
 
 	LOG_INFO("raw");
 	Handle<std::string> hRaw = v8Buffer_to_String(info[0]);
 
 	Nan::Callback *callback = new Nan::Callback(info[1].As<v8::Function>());
-	Nan::AsyncQueueWorker(new AsyncPbkdf2Import(callback, hRaw));
+	Nan::AsyncQueueWorker(new AsyncPbkdf2Import(callback, hRaw, info.Data()));
 }
 
 /**

@@ -13,7 +13,7 @@ void AsyncEcGenerateKey::Execute() {
 void AsyncEcGenerateKey::HandleOKCallback() {
 	Nan::HandleScope scope;
 
-	v8::Local<v8::Object> v8Key = WKey::NewInstance();
+	v8::Local<v8::Object> v8Key = WKey::NewInstance(addon_data);
 	WKey *wkey = WKey::Unwrap<WKey>(v8Key);
 	wkey->data = this->key;
 
@@ -90,7 +90,7 @@ void AsyncEcImportJwk::Execute() {
 void AsyncEcImportJwk::HandleOKCallback() {
 	Nan::HandleScope scope;
 
-	v8::Local<v8::Object> v8Key = WKey::NewInstance();
+	v8::Local<v8::Object> v8Key = WKey::NewInstance(addon_data);
 	WKey *wkey = WKey::Unwrap<WKey>(v8Key);
 	wkey->data = pkey;
 
