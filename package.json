@@ -10,7 +10,7 @@
   "types": "index.d.ts",
   "scripts": {
     "clean": "rm -rf build/ buildjs/ coverage/ .nyc_output/ npm-debug.log npm-debug.log.*",
-    "prepare": "npm run build",
+    "prepare": "NODE_ENV=development && npm run build",
     "test": "mocha",
     "build": "npm run build:es5",
     "build:es5": "tsc",
