@@ -10,6 +10,6 @@ build
 test*.js
 
 # build
-lib
-ts*.json
+# lib
+# ts*.json
 **/*.map
